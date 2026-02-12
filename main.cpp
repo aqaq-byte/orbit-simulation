@@ -1,5 +1,3 @@
-// Single-file demo: Sun that looks like a star (limb darkening + animated detail + corona + HDR bloom)
-// GL 3.3 Core, GLEW, GLFW, GLM. Drop-in replacement for your current main.cpp.
 
 #include <iostream>
 #include <vector>
@@ -17,12 +15,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "OBJloader.h"    // For loading .obj
+#include "OBJloader.h"    
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-// ------------------------- Camera setup -------------------------
+// Camera setup
 glm::vec3 camPos(0.0f, 0.0f, 6.0f);
 glm::vec3 camUp(0.0f, 1.0f, 0.0f);
 float fov = 45.0f;
@@ -33,7 +31,7 @@ int fbWidth, fbHeight;
 bool ignoreFirstMouseDelta = false;
 
 
-// ------------------------- Data types -------------------------
+// Data types 
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
@@ -49,7 +47,7 @@ struct ShootingStar {
 
 std::vector<ShootingStar> stars;
 
-// ---- Projectiles & Crosshair ----
+// Projectiles & Crosshair 
 struct Projectile {
     glm::vec3 position;
     glm::vec3 velocity;
@@ -70,7 +68,7 @@ GLuint progCrosshair = 0;
 // Mouse click edge detector
 bool wasMouseDown = false;
 
-// ------------------------- Sphere generator -------------------------
+// Sphere generator 
 std::vector<Vertex> generateSphere(int sectorCount, int stackCount, float radius = 0.5f) {
     std::vector<Vertex> vertices;
     const float pi = glm::pi<float>();
@@ -102,7 +100,7 @@ std::vector<Vertex> generateSphere(int sectorCount, int stackCount, float radius
     return vertices;
 }
 
-// ------------------------- Shader utils -------------------------
+// Shader utils 
 static GLuint compileProgram(const char* vs, const char* fs) {
     auto compile = [](GLenum type, const char* src){
         GLuint sh = glCreateShader(type);
@@ -121,7 +119,7 @@ static GLuint compileProgram(const char* vs, const char* fs) {
     return p;
 }
 
-// ------------------------- VAO/VBO for interleaved Vertex -------------------------
+// VAO/VBO for interleaved Vertex
 static GLuint createVAO(const std::vector<Vertex>& vertices) {
     GLuint VAO, VBO;
     glGenVertexArrays(1, &VAO);
@@ -139,7 +137,7 @@ static GLuint createVAO(const std::vector<Vertex>& vertices) {
     return VAO;
 }
 
-// ------------------------- Texture loading -------------------------
+// Texture loading 
 static GLuint loadTexture2D(const char* path, bool srgb=false) {
     GLuint tex; glGenTextures(1, &tex); glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -158,7 +156,7 @@ static GLuint loadTexture2D(const char* path, bool srgb=false) {
     return tex;
 }
 
-// ------------------------- Model loading (OBJ) -------------------------
+// Model loading (OBJ)
 static GLuint setupModelVBO(const std::string& path, int& vertexCount) {
     std::vector<glm::vec3> vtx; std::vector<glm::vec3> nrm; std::vector<glm::vec2> uv;
     loadOBJ(path.c_str(), vtx, nrm, uv);
@@ -175,7 +173,7 @@ static GLuint setupModelVBO(const std::string& path, int& vertexCount) {
     return VAO;
 }
 
-// ------------------------- HDR/Bloom FBO helpers -------------------------
+// HDR/Bloom FBO helpers
 struct FBO {
     GLuint fbo=0, color=0, rboDepth=0;
     int w=0, h=0;
@@ -219,7 +217,7 @@ static PingPong createPingPong(int w, int h) {
     return p;
 }
 
-// ------------------------- Shaders -------------------------
+// Shaders 
 static const char* VS_LIT = R"GLSL(
 #version 330 core
 layout (location = 0) in vec3 aPos;
@@ -380,7 +378,7 @@ void main(){
 }
 )GLSL";
 
-// ------------------------- Main -------------------------
+// Main 
 
 // ---- Crosshair shaders (NDC pass-through) ----
 static const char* VS_CROSSHAIR = R"GLSL(
@@ -542,7 +540,7 @@ int main(){
         float timeNow = (float)glfwGetTime(); float dt = timeNow - lastTime; lastTime=timeNow;
 
 
-        // ------------- Camera controls (center-locked cursor) -------------
+        // Camera controls (center-locked cursor) 
         int winW, winH; glfwGetWindowSize(window, &winW, &winH);
         double centerX = winW * 0.5, centerY = winH * 0.5;
 
@@ -586,7 +584,7 @@ int main(){
         glm::mat4 view = glm::lookAt(camPos, camPos+direction, up);
 
 
-        // ------------- Shoot projectiles from crosshair with left click -------------
+        // Shoot projectiles from crosshair with left click 
         {
             int mouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
             bool isDown = (mouseState == GLFW_PRESS);
@@ -604,7 +602,7 @@ int main(){
         }
 
 
-        // ------------- Scene pass into HDR FBO -------------
+        // Scene pass into HDR FBO 
         glBindFramebuffer(GL_FRAMEBUFFER, hdr.fbo);
         
         glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
@@ -717,7 +715,7 @@ int main(){
         }
 
 
-        // ------------- Projectiles update (with collision) -------------
+        // Projectiles update (with collision) 
         // Animated centers (match draw transforms)
         glm::mat4 earthModel_c = glm::rotate(glm::mat4(1.0f), timeNow * glm::radians(30.0f), glm::vec3(0,1,0));
         earthModel_c = glm::translate(earthModel_c, glm::vec3(2.3f, 0.0f, 0.0f));
@@ -748,7 +746,7 @@ int main(){
                            [](const Projectile& b){ return b.life <= 0.0f; }),
             projectiles.end()
         );
-        // ------------- Projectiles render -------------
+        // Projectiles render 
         glUseProgram(progLit);
         glUniform1i(glGetUniformLocation(progLit,"useTexture"), GL_FALSE);
         glUniform1i(glGetUniformLocation(progLit,"emissive"),   GL_TRUE);
@@ -782,7 +780,7 @@ int main(){
         glBindVertexArray(0);
         glDisable(GL_BLEND);
 
-        // ------------- Post: Bright pass -------------
+        // Bright pass 
         glBindFramebuffer(GL_FRAMEBUFFER, pp.fbo[0]);
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(progBright);
@@ -793,7 +791,7 @@ int main(){
 
 
 
-        // ------------- Crosshair overlay (draw last on default framebuffer) -------------
+        // Crosshair overlay (draw last on default framebuffer) 
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
         // Disable MSAA to avoid soft edges (some drivers smooth triangle edges)
@@ -823,7 +821,7 @@ int main(){
         glEnable(GL_DEPTH_TEST);
     
 
-        // ------------- Blur ping-pong -------------
+        // Blur ping-pong 
         bool horizontal=true; int passes=8;
         glUseProgram(progBlur);
         for(int i=0;i<passes;++i){
@@ -837,7 +835,7 @@ int main(){
             horizontal = !horizontal;
         }
 
-        // ------------- Composite to default framebuffer -------------
+        // Composite to default framebuffer 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, fbWidth, fbHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
